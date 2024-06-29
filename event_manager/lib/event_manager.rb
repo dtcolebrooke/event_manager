@@ -4,7 +4,7 @@ class EventManager
   attr_accessor :lines
 
    def initialize
-    @lines = File.readlines 'F:/repos/event_manager/event_attendees.csv'
+    @lines = CSV.open('F:/repos/event_manager/event_attendees.csv', headers: true)
     start
    end
 # Does this File actually exist? File check with method.
@@ -15,10 +15,8 @@ def start
 end
 
 def first_names(names: @lines)
-  names.each_with_index do |line, index|
-    next if index == 0  
-    columns = line.split(',')
-    name = columns[2]
+  names.each do |row|
+    name = row[2]
     puts name
   end
  end
