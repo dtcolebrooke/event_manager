@@ -4,32 +4,38 @@
 class EventManager
   require 'csv'
 
-  attr_accessor :lines, :first_names
+  attr_accessor :lines, :names, :zipcodes
 
   def initialize
-    @lines = CSV.open('F:/repos/event_manager/event_attendees.csv', headers: true)
+    @lines = CSV.open(
+      'F:/repos/event_manager/event_attendees.csv',
+       headers: true,
+       header_converters: :symbol
+       )
     start
+    iterate_through_csv
   end
 
   def start
     puts 'Event Manager Initialized!'
   end
 
-  def list_first_names(file: @lines)
+  def iterate_through_csv(file: @lines)
     file.each do |row|
-      retrieve_the_name(row)
+      store_rows(row)
     end
   end
 
-  def retrieve_the_name(row)
-    @first_names = row[2]
-    list_name(names: @first_names)
+  def store_rows(row)
+    @names = row[:first_name]
+    @zipcodes = row[:zipcode]
+    names_and_zipcodes
   end
 
-  def list_name(names:)
-    puts names
+  def names_and_zipcodes list_names: names, list_zipcodes: zipcodes
+    puts "#{list_names} #{list_zipcodes}"
   end
 
   attendees = EventManager.new
-  attendees.list_first_names
+  attendees.names_and_zipcodes
 end
