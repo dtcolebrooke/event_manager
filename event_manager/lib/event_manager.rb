@@ -9,15 +9,18 @@ class EventManager
   def initialize
     @lines = CSV.open(
       'F:/repos/event_manager/event_attendees.csv',
-       headers: true,
-       header_converters: :symbol
-       )
+      headers: true,
+      header_converters: :symbol
+    )
     start
-    iterate_through_csv
   end
 
   def start
     puts 'Event Manager Initialized!'
+  end
+
+  def trigger_names_and_zipcodes
+    iterate_through_csv
   end
 
   def iterate_through_csv(file: @lines)
@@ -32,10 +35,10 @@ class EventManager
     names_and_zipcodes
   end
 
-  def names_and_zipcodes list_names: names, list_zipcodes: zipcodes
+  def names_and_zipcodes(list_names: names, list_zipcodes: zipcodes)
     puts "#{list_names} #{list_zipcodes}"
   end
 
   attendees = EventManager.new
-  attendees.names_and_zipcodes
+  attendees.trigger_names_and_zipcodes
 end
