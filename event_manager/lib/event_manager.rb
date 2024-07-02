@@ -47,6 +47,8 @@ class EventManager
       roles: ['legislatorUpperBody', 'legislatorLowerBody']
     )
     self.legislators = legislators.officials
+    self.legislators = legislators.map(&:name)
+    self.legislators = legislators.join(', ')
   rescue Google::Apis::ClientError
     'You can find your representatives by visitiong www.commoncause.org/take-action/find-elected-officials'
   end
