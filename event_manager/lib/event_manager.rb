@@ -5,11 +5,12 @@ class EventManager
   require 'csv'
   require 'google/apis/civicinfo_v2'
 
-  attr_accessor :lines, :names, :zipcodes, :legislators, :civic_info
+  attr_accessor :lines, :names, :zipcodes, :legislators, :civic_info, :template_letter, :personal_letter
 
   def initialize
     @civic_info = civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
     civic_info.key = File.read('F:/secret.txt').strip
+    @template_letter = File.read('form_letter.html')
     @lines = CSV.open(
       'F:/repos/event_manager/event_attendees.csv',
       headers: true,
@@ -61,6 +62,18 @@ class EventManager
     elsif zipcode.length > 5
       self.zipcodes = zipcode[0..4]
     end
+  end
+
+  def replace_first_name
+    self.personal_letter = template_letter.gsub('FIRST_NAME', names)
+  end
+
+  def replace_legislators
+    self.personal_letter = personal_letter.gsub('LEGISLATORS', legislators)
+  end
+
+  def prints_out_personal_letter
+    puts personal_letter
   end
 
   def results(list_names: names, list_zipcodes: zipcodes, info_legislators: legislators)
