@@ -3,14 +3,13 @@
 # gets first names of attendees
 class EventManager
   require 'csv'
-  require 'csv'
   require 'google/apis/civicinfo_v2'
 
   attr_accessor :lines, :names, :zipcodes, :legislators, :civic_info
 
   def initialize
     @civic_info = civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
-    civic_info.key = 'AIzaSyCXhcfCt9VDj4SdKaRQUBhyxCyY4mGYHk8'
+    civic_info.key = File.read('F:/secret.txt').strip
     @lines = CSV.open(
       'F:/repos/event_manager/event_attendees.csv',
       headers: true,
@@ -48,6 +47,8 @@ class EventManager
       roles: ['legislatorUpperBody', 'legislatorLowerBody']
     )
     self.legislators = legislators.officials
+  rescue Google::Apis::ClientError
+    'You can find your representatives by visitiong www.commoncause.org/take-action/find-elected-officials'
   end
 
   def handle_zipcodes(zipcode: zipcodes)
