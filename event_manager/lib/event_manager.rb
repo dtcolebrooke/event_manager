@@ -3,7 +3,6 @@
 # gets first names of attendees
 class EventManager
   require 'csv'
-  require 'csv'
   require 'google/apis/civicinfo_v2'
 
   attr_accessor :lines, :names, :zipcodes, :legislators, :civic_info
@@ -37,11 +36,7 @@ class EventManager
     self.names = row[:first_name]
     self.zipcodes = row[:zipcode]
     handle_zipcodes
-    begin
-      list_officials
-    rescue Racc::PARSEError
-      'You can find your representatives by visitiong www.commoncause.org/take-action/find-elected-officials'
-    end
+    list_officials
     results
   end
 
@@ -52,6 +47,8 @@ class EventManager
       roles: ['legislatorUpperBody', 'legislatorLowerBody']
     )
     self.legislators = legislators.officials
+  rescue Google::Apis::ClientError
+    'You can find your representatives by visitiong www.commoncause.org/take-action/find-elected-officials'
   end
 
   def handle_zipcodes(zipcode: zipcodes)
