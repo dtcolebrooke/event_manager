@@ -4,13 +4,16 @@
 class EventManager
   require 'csv'
   require 'google/apis/civicinfo_v2'
+  require 'erb'
 
-  attr_accessor :lines, :names, :zipcodes, :legislators, :civic_info, :template_letter, :personal_letter
+  attr_accessor :lines, :name, :zipcodes, :legislators, :civic_info, :template_letter, :personal_letter, :erb_template,
+                :form_letter, :id, :filename
 
   def initialize
-    @civic_info = civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
+    @civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
     civic_info.key = File.read('F:/secret.txt').strip
-    @template_letter = File.read('form_letter.html')
+    @template_letter = File.read('F:/repos/form_letter.erb')
+    @erb_template = ERB.new template_letter
     @lines = CSV.open(
       'F:/repos/event_manager/event_attendees.csv',
       headers: true,
@@ -23,33 +26,34 @@ class EventManager
     puts 'Event Manager Initialized!'
   end
 
-  def trigger_names_and_zipcodes
+  def trigger_form_letters
     iterate_through_csv
   end
 
-  def iterate_through_csv(file: @lines)
+  def iterate_through_csv(file: lines)
     file.each do |row|
       store_rows(row)
     end
   end
 
   def store_rows(row)
-    self.names = row[:first_name]
+    self.id = row[0]
+    self.name = row[:first_name]
     self.zipcodes = row[:zipcode]
     handle_zipcodes
-    list_officials
-    results
+    self.legislators = legislators_by_zipcode
+    self.form_letter = erb_template.result(binding)
+    create_output_folder
+    specialized_thank_you
+    create_the_letters
   end
 
-  def list_officials
+  def legislators_by_zipcode(zipcode: zipcodes)
     self.legislators = civic_info.representative_info_by_address(
-      address: zipcodes,
+      address: zipcode,
       levels: 'country',
       roles: ['legislatorUpperBody', 'legislatorLowerBody']
-    )
-    self.legislators = legislators.officials
-    self.legislators = legislators.map(&:name)
-    self.legislators = legislators.join(', ')
+    ).officials
   rescue Google::Apis::ClientError
     'You can find your representatives by visitiong www.commoncause.org/take-action/find-elected-officials'
   end
@@ -64,22 +68,28 @@ class EventManager
     end
   end
 
-  def replace_first_name
-    self.personal_letter = template_letter.gsub('FIRST_NAME', names)
+  def create_output_folder
+    Dir.mkdir('output') unless Dir.exist?('output')
   end
 
-  def replace_legislators
-    self.personal_letter = personal_letter.gsub('LEGISLATORS', legislators)
+  def specialized_thank_you(ids: id)
+    self.filename = "output/thanks_#{ids}.html"
   end
 
-  def prints_out_personal_letter
-    puts personal_letter
+  def create_the_letters
+    File.open(filename, 'w') do |file|
+      prints_form_letter(file)
+    end
   end
 
-  def results(list_names: names, list_zipcodes: zipcodes, info_legislators: legislators)
+  def prints_form_letter(file)
+    file.puts form_letter
+  end
+
+  def output_to_forms(list_names: name, list_zipcodes: zipcodes, info_legislators: legislators)
     puts "#{list_names} #{list_zipcodes} #{info_legislators}"
   end
 
   attendees = EventManager.new
-  attendees.trigger_names_and_zipcodes
+  attendees.trigger_form_letters
 end
