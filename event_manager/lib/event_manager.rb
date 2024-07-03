@@ -86,10 +86,6 @@ class EventManager
     file.puts form_letter
   end
 
-  def output_to_forms(list_names: name, list_zipcodes: zipcodes, info_legislators: legislators)
-    puts "#{list_names} #{list_zipcodes} #{info_legislators}"
-  end
-
   attendees = EventManager.new
   attendees.trigger_form_letters
 end
